@@ -17,7 +17,7 @@ Replace this paragraph with your own summary of what your version does.
 
 ## How The System Works
 
-Real-world recommenders like Spotify or YouTube analyze patterns across millions of songs and users — matching what you listen to against item attributes, listening history, and the behavior of similar users. This simulation focuses on the content-based side of that: it scores each song directly against what a user says they like, without needing any data from other users. The system prioritizes the three features that carry the most signal in a small catalog — genre, mood, and energy — because together they capture both the style of a song and the context it fits (working out, studying, relaxing). A song earns points for matching the user's preferred genre, matching their mood, and having an energy level close to their target. The top-scoring songs become the recommendations.
+Real-world recommenders like Spotify or YouTube analyze patterns across millions of songs and users, matching what you listen to against item attributes, listening history, and the behavior of similar users. This simulation focuses on the content-based side of that: it scores each song directly against what a user says they like, without needing any data from other users. The system prioritizes the three features that carry the most signal in a small catalog, genre, mood, and energy because together they capture both the style of a song and the context it fits (working out, studying, relaxing). A song earns points for matching the user's preferred genre, matching their mood, and having an energy level close to their target. The top-scoring songs become the recommendations.
 
 ### Song Features
 
@@ -34,6 +34,36 @@ Real-world recommenders like Spotify or YouTube analyze patterns across millions
 | `favorite_genre` | string | Matched against `song.genre` for the largest score contribution |
 | `favorite_mood` | string | Matched against `song.mood` for the second-largest score contribution |
 | `target_energy` | float 0.0–1.0 | Compared to `song.energy`; closer = higher score |
+
+### Algorithm Recipe
+
+Each song is scored out of 100 points using three steps applied in order:
+
+**Step 1 — Genre match (40 pts)**
+```
+if song.genre == user.favorite_genre:
+    score += 40
+```
+
+**Step 2 — Mood match (30 pts)**
+```
+if song.mood == user.favorite_mood:
+    score += 30
+```
+
+**Step 3 — Energy proximity (0–20 pts)**
+```
+score += (1 - abs(song.energy - user.target_energy)) * 20
+```
+
+After all songs are scored, they are sorted by score descending and the top K are returned with an explanation of which features matched.
+
+### Potential Biases
+
+- **Genre dominance** — genre carries 40% of the total score, so a perfect genre match with the wrong mood will still rank higher than a perfect mood match with the wrong genre. A great song in an adjacent genre (e.g. indie pop when the user asked for pop) will be penalized even if it fits the mood and energy perfectly.
+- **Binary genre and mood matching** — genre and mood are either a full match or zero; there is no partial credit for related categories (e.g. lofi and ambient are both chill but score differently). This makes the system brittle at genre boundaries.
+- **Energy as a tiebreaker only** — with a maximum of 20 pts, energy can never overcome a genre or mood mismatch on its own, so the system may miss songs that are a near-perfect energy fit but differ in genre.
+- **Catalog imbalance** — if the catalog has more songs in one genre than another, users who prefer that genre will always have more candidates to draw from, making their recommendations appear stronger.
 
 ---
 
