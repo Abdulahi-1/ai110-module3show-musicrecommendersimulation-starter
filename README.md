@@ -147,4 +147,8 @@ The adversarial profiles made the fairness dimension concrete. A user whose pref
 
 ## MelodyMap In Action
 
+<img width="1036" height="364" alt="Screenshot 2026-04-12 at 7 46 52 PM" src="https://github.com/user-attachments/assets/1f986eaf-8517-4830-9580-ae4ee376c9a0" />
+
+<img width="1036" height="364" alt="Screenshot 2026-04-12 at 7 53 39 PM" src="https://github.com/user-attachments/assets/13f517e6-ffb1-430b-a314-d3d753c60734" />
+
 
