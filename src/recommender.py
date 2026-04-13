@@ -83,23 +83,30 @@ def load_songs(csv_path: str) -> List[Dict]:
     return songs
 
 def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
-    """Score a song out of 90 pts (genre 40, mood 30, energy 20) and return reasons."""
+    """Score a song out of 90 pts (genre 20, mood 30, energy 40) and return reasons.
+
+    EXPERIMENTAL — Weight Shift:
+      Genre weight halved  : 40 → 20 pts  (binary match)
+      Mood weight unchanged:      30 pts  (binary match)
+      Energy weight doubled: 20 → 40 pts  (continuous 0–1 proximity)
+    Total max is still 90 pts so scores remain directly comparable to baseline.
+    """
     score = 0.0
     reasons = []
 
-    # Step 1 — Genre match (40 pts)
+    # Step 1 — Genre match (20 pts, halved from 40)
     if song["genre"] == user_prefs.get("genre"):
-        score += 40.0
-        reasons.append(f"genre match (+40.0)")
+        score += 20.0
+        reasons.append(f"genre match (+20.0)")
 
-    # Step 2 — Mood match (30 pts)
+    # Step 2 — Mood match (30 pts, unchanged)
     if song["mood"] == user_prefs.get("mood"):
         score += 30.0
         reasons.append(f"mood match (+30.0)")
 
-    # Step 3 — Energy proximity (0–20 pts)
+    # Step 3 — Energy proximity (0–40 pts, doubled from 0–20)
     if "energy" in user_prefs:
-        energy_score = (1 - abs(song["energy"] - user_prefs["energy"])) * 20
+        energy_score = (1 - abs(song["energy"] - user_prefs["energy"])) * 40
         score += energy_score
         reasons.append(f"energy match (+{energy_score:.1f})")
 
