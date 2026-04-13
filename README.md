@@ -11,7 +11,7 @@ Your goal is to:
 - Evaluate what your system gets right and wrong
 - Reflect on how this mirrors real world AI recommenders
 
-Replace this paragraph with your own summary of what your version does.
+This version, called **MelodyMap**, scores every song in a small curated catalog against a user profile that captures a favorite genre, a preferred mood, and a target energy level. Each song earns up to 90 points: 20 for a genre match, 30 for a mood match, and up to 40 for how closely its energy level matches the user's target. The top five songs are returned with a plain-language explanation of which features matched. Compared to the starter defaults, the genre and energy weights were deliberately swapped (genre 40→20, energy 20→40) to test whether energy proximity could carry more of the ranking signal when a user's preferred genre is thin in the catalog. Six user profiles — three normal and three adversarial — were used to evaluate the system.
 
 ---
 
@@ -104,25 +104,31 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Experiments You Tried
 
-Use this section to document the experiments you ran. For example:
+**Weight shift — genre 40→20, energy 20→40**
+Halving the genre weight and doubling the energy weight caused a visible rank change in the High-Energy Pop profile: *Rooftop Lights* jumped from third to second because its mood match outweighed *Gym Hero*'s genre match once genre became cheaper. This confirmed that the relative weight of each feature has a real, traceable effect on results.
 
-- What happened when you changed the weight on genre from 2.0 to 0.5
-- What happened when you added tempo or valence to the score
-- How did your system behave for different types of users
+**Adversarial profile — non-existent mood (`sad`)**
+Requesting `mood: sad` (a label not present in the catalog) meant the mood branch never fired. Genre and energy alone shaped every result, which revealed how silently the system degrades when a user's preference has no match — no error, just subtly wrong rankings.
+
+**Adversarial profile — lofi genre at max energy (`energy: 1.0`)**
+Lofi songs cluster around energy 0.3–0.4. Requesting `energy: 1.0` imposed a heavy energy penalty on every lofi track, narrowing the gap between the lofi genre-and-mood matches and unrelated pop songs to as little as 30 points. This showed that energy can override genre loyalty when the two signals pull in opposite directions.
+
+**Adversarial profile — genre absent from catalog (`classical`)**
+When the requested genre does not appear at all, the genre bonus never fires and the entire ranking is decided by mood and energy proximity alone. The top results in this case were musically unrelated to classical; the system had no fallback for stylistic similarity.
+
+**Six-profile sweep (3 normal + 3 adversarial)**
+Testing all six profiles side-by-side made the catalog depth problem concrete: a lofi listener gets a genre bonus on three songs, while a rock or jazz listener gets it on exactly one, so positions 2–5 for niche-genre users are filled by energy proximity rather than actual genre affinity.
 
 ---
 
 ## Limitations and Risks
 
-Summarize some limitations of your recommender.
-
-Examples:
-
-- It only works on a tiny catalog
-- It does not understand lyrics or language
-- It might over favor one genre or mood
-
-You will go deeper on this in your model card.
+- **Tiny catalog** — the base dataset has 10 songs and most genres appear only once or twice, so the system frequently falls back to energy proximity rather than true genre affinity for positions 2–5.
+- **Binary genre and mood matching** — a song either matches exactly or scores zero; there is no partial credit for adjacent categories (e.g., "chill" and "relaxed" are treated as completely different even though they overlap in practice).
+- **Unused features** — `tempo_bpm`, `valence`, `danceability`, and `acousticness` are stored in the CSV but the scoring function ignores them entirely, meaning a large portion of each song's description is invisible to the recommender.
+- **Unsigned energy gap** — "too quiet" and "too loud" are penalized equally, so a gym user asking for energy 0.95 can still receive a quiet ambient track in their top 5 if no genre or mood match exists.
+- **No personalization over time** — the profile is static; the system has no way to learn from skips, replays, or listening history.
+- **Silent degradation on missing labels** — if a user requests a genre or mood that does not appear in the catalog, the system returns results without any warning, and the recommendations can look plausible while being completely unrelated to what the user actually wanted.
 
 ---
 
@@ -132,116 +138,8 @@ Read and complete `model_card.md`:
 
 [**Model Card**](model_card.md)
 
-Write 1 to 2 paragraphs here about what you learned:
+The biggest lesson from building MelodyMap is that scoring weights are a design decision, not a neutral technical choice. Changing genre from 40 points to 20 and energy from 20 to 40 was a small edit in one function, but it visibly reshuffled the top-5 results for multiple profiles. Real recommenders make the same kind of choice at much larger scale — every weight, threshold, and feature selection encodes an assumption about what listeners care about — and those assumptions can quietly disadvantage users whose preferences don't fit the dominant pattern.
 
-- about how recommenders turn data into predictions
-- about where bias or unfairness could show up in systems like this
+The adversarial profiles made the fairness dimension concrete. A user whose preferred genre doesn't appear in the catalog gets results that look confident but are essentially random with respect to genre. A user whose favorite mood label is absent loses 30 points on every song without any indication that something went wrong. In a production system, those silent failures would show up as churn or disengagement rather than an error message, making them easy to overlook. Building even a toy recommender made it clear why diverse training data, partial-match credit for related categories, and explicit feedback mechanisms all matter — not as nice-to-haves, but as the difference between a system that serves most users well and one that serves only the users whose tastes already match the catalog's assumptions.
 
-
----
-
-## 7. `model_card_template.md`
-
-Combines reflection and model card framing from the Module 3 guidance. :contentReference[oaicite:2]{index=2}  
-
-```markdown
-# 🎧 Model Card - Music Recommender Simulation
-
-## 1. Model Name
-
-Give your recommender a name, for example:
-
-> VibeFinder 1.0
-
----
-
-## 2. Intended Use
-
-- What is this system trying to do
-- Who is it for
-
-Example:
-
-> This model suggests 3 to 5 songs from a small catalog based on a user's preferred genre, mood, and energy level. It is for classroom exploration only, not for real users.
-
----
-
-## 3. How It Works (Short Explanation)
-
-Describe your scoring logic in plain language.
-
-- What features of each song does it consider
-- What information about the user does it use
-- How does it turn those into a number
-
-Try to avoid code in this section, treat it like an explanation to a non programmer.
-
----
-
-## 4. Data
-
-Describe your dataset.
-
-- How many songs are in `data/songs.csv`
-- Did you add or remove any songs
-- What kinds of genres or moods are represented
-- Whose taste does this data mostly reflect
-
----
-
-## 5. Strengths
-
-Where does your recommender work well
-
-You can think about:
-- Situations where the top results "felt right"
-- Particular user profiles it served well
-- Simplicity or transparency benefits
-
----
-
-## 6. Limitations and Bias
-
-Where does your recommender struggle
-
-Some prompts:
-- Does it ignore some genres or moods
-- Does it treat all users as if they have the same taste shape
-- Is it biased toward high energy or one genre by default
-- How could this be unfair if used in a real product
-
----
-
-## 7. Evaluation
-
-How did you check your system
-
-Examples:
-- You tried multiple user profiles and wrote down whether the results matched your expectations
-- You compared your simulation to what a real app like Spotify or YouTube tends to recommend
-- You wrote tests for your scoring logic
-
-You do not need a numeric metric, but if you used one, explain what it measures.
-
----
-
-## 8. Future Work
-
-If you had more time, how would you improve this recommender
-
-Examples:
-
-- Add support for multiple users and "group vibe" recommendations
-- Balance diversity of songs instead of always picking the closest match
-- Use more features, like tempo ranges or lyric themes
-
----
-
-## 9. Personal Reflection
-
-A few sentences about what you learned:
-
-- What surprised you about how your system behaved
-- How did building this change how you think about real music recommenders
-- Where do you think human judgment still matters, even if the model seems "smart"
 

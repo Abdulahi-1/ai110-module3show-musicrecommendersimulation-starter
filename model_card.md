@@ -2,15 +2,15 @@
 
 ## 1. Model Name  
 
-**VibeFinder 1.0**  
+**MelodyMap**  
 
 ---
 
 ## 2. Intended Use  
 
-VibeFinder 1.0 is a music recommendation simulation built for classroom exploration of how algorithmic recommenders work. Given a user profile that captures a favorite genre, a preferred mood, and a target energy level, the system returns the five songs from a small curated catalog that best match those preferences.
+MelodyMap is a music recommendation simulation built for classroom exploration of how algorithmic recommenders work. Given a user profile that captures a favorite genre, a preferred mood, and a target energy level, the system returns the five songs from a small curated catalog that best match those preferences.
 
-It is not a production product. There are no real users, no login data, and no streaming history. The system assumes that a person can accurately describe their taste with three fields — genre, mood, and energy — and that those three signals are sufficient to rank a catalog of songs. This is a deliberate simplification intended to make the mechanics of scoring and ranking visible and easy to reason about, rather than to reflect the full complexity of real listening behavior.  
+It is not a production product. There are no real users, no login data, and no streaming history. The system assumes that a person can accurately describe their taste with three fields: genre, mood, energy, and that those three signals are sufficient to rank a catalog of songs. This is a deliberate simplification intended to make the mechanics of scoring and ranking visible and easy to reason about, rather than to reflect the full complexity of real listening behavior.  
 
 ---
 
@@ -28,11 +28,11 @@ Compared to the original starter code, the genre and energy weights were swapped
 
 The base catalog contains 10 songs stored in a CSV file with one row per song. Each row records the song's title, artist, genre, mood, energy level (0–1), tempo in beats per minute, valence, danceability, and acousticness. A second extended catalog adds 8 more songs for a combined total of 18, though the main simulation runs against the 10-song base catalog unless the extended file is loaded explicitly.
 
-The 10 base songs span seven genres — pop, lofi, rock, ambient, jazz, synthwave, and indie pop — and six moods: happy, chill, intense, relaxed, moody, and focused. The 8 extended songs add hip-hop, R&B, classical, country, EDM, metal, folk, and soul, along with moods like sad, romantic, peaceful, nostalgic, energetic, angry, melancholic, and uplifting.
+The 10 base songs span seven genres pop, lofi, rock, ambient, jazz, synthwave, ndie pop, and six moods: happy, chill, intense, relaxed, moody, and focused. The 8 extended songs add hip-hop, R&B, classical, country, EDM, metal, folk, and soul, along with moods like sad, romantic, peaceful, nostalgic, energetic, angry, melancholic, and uplifting.
 
 Both files were hand-authored for this classroom project, meaning the attribute values are plausible estimates rather than data pulled from a real music service. No songs were removed from the starter dataset; the extended file was added to give adversarial test profiles something to match against.
 
-Several gaps remain. No genre appears more than twice in the base catalog, so users with niche tastes have at most two real matches before the system falls back entirely to energy proximity. Mood coverage is similarly thin — most mood labels appear on only one song. Acoustic attributes like valence, danceability, and acousticness are present in the data but are not used by the current scoring function at all, which means a significant share of each song's description is invisible to the recommender.  
+Several gaps remain. No genre appears more than twice in the base catalog, so users with niche tastes have at most two real matches before the system falls back entirely to energy proximity. Mood coverage is similarly thin most mood labels appear on only one song. Acoustic attributes like valence, danceability, and acousticness are present in the data but are not used by the current scoring function at all, which means a significant share of each song's description is invisible to the recommender.  
 
 ---
 
