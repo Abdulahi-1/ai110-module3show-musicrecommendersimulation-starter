@@ -17,17 +17,23 @@ Replace this paragraph with your own summary of what your version does.
 
 ## How The System Works
 
-Explain your design in plain language.
+Real-world recommenders like Spotify or YouTube analyze patterns across millions of songs and users — matching what you listen to against item attributes, listening history, and the behavior of similar users. This simulation focuses on the content-based side of that: it scores each song directly against what a user says they like, without needing any data from other users. The system prioritizes the three features that carry the most signal in a small catalog — genre, mood, and energy — because together they capture both the style of a song and the context it fits (working out, studying, relaxing). A song earns points for matching the user's preferred genre, matching their mood, and having an energy level close to their target. The top-scoring songs become the recommendations.
 
-Some prompts to answer:
+### Song Features
 
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
-- How does your `Recommender` compute a score for each song
-- How do you choose which songs to recommend
+| Feature | Type | Role |
+|---|---|---|
+| `genre` | categorical | Primary style signal (pop, lofi, rock, ambient, jazz, synthwave, indie pop) |
+| `mood` | categorical | Context signal (happy, chill, intense, relaxed, focused, moody) |
+| `energy` | float 0.0–1.0 | Intensity match against user's target energy |
 
-You can include a simple diagram or bullet list if helpful.
+### UserProfile Fields
+
+| Field | Type | Role |
+|---|---|---|
+| `favorite_genre` | string | Matched against `song.genre` for the largest score contribution |
+| `favorite_mood` | string | Matched against `song.mood` for the second-largest score contribution |
+| `target_energy` | float 0.0–1.0 | Compared to `song.energy`; closer = higher score |
 
 ---
 
